@@ -2,15 +2,19 @@ require("dotenv").config();
 var fs = require('fs');
 var keys = require("./keys");
 var Spotify = require('node-spotify-api');
+var Twitter = require("twitter");
 var spotify = new Spotify(keys.spotify);
+var client = new Twitter(keys.twitter);
 
 var task = process.argv[2];
 var thingSearched = process.argv.slice(3).join(" ");
 
 if (task === "movie-this") {
     movieSearch();
-} else if (task === "spotify-this-song"){
+} else if (task === "spotify-this-song") {
     spotifySearch();
+} else if (task === "my-tweets") {
+    twitterSearch();
 } else {
     console.log("I have no idea what you want.")
 }
@@ -27,12 +31,6 @@ function spotifySearch() {
             console.log("Error occurred: " + error);
             return;
             }
-            // console.log("--------------------");
-            // console.log("Artist(s): " + data.tracks.items[0].artists[0].name);
-            // console.log("Song Title: " + data.tracks.items[0].name);
-            // console.log("Preview Link: " + data.tracks.items[0].preview_url);
-            // console.log("Album: " + data.tracks.items[0].album.name);
-            // console.log('--------------------');
             var showData = [
                 "Artist: " + data.tracks.items[0].artists[0].name,
                 "Song Title: " + data.tracks.items[0].name,
@@ -76,4 +74,20 @@ function movieSearch () {
             
         }
     })
+}
+
+function twitterSearch() {
+    var tweetData = []
+    var params = {screen_name: 'AshleyO31803519'};
+    client.get('statuses/user_timeline', params, function(error, tweets, response) {
+        if (!error) {
+            for (i = 0; i < tweets.length; i++) {
+                tweetData.push(tweets[i].text);
+                console.log(tweets[i].text);
+                fs.appendFile("log.txt", tweets[i].text + "\n------------------------\n", function(err) {
+                    if (err) throw err;
+                });
+            }
+        }
+    });
 }
